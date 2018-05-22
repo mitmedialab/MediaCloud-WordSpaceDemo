@@ -26,7 +26,6 @@ var generateWord2vecCloud = function(options, wordList) {
 
   const margin = 80;
   const RADIUS_MARGIN = 0;
-  const NUM_CONCENTRIC_CIRCLES = 4;
 
   const radii = wordList.map(function(d) { return Math.pow(Math.pow(d[options.xProperty], 2) + Math.pow(d[options.yProperty], 2), 0.5); });
   const maxRadius = d3.max(radii);
@@ -51,7 +50,6 @@ var generateWord2vecCloud = function(options, wordList) {
               var transform = d3.event.transform;
 
               // update circles and arc tool-tip
-              d3.select('#concentric-circles').attr("transform", transform);
               d3.select('#arc-tip').attr("transform", transform);
 
               // update origin point
@@ -66,56 +64,14 @@ var generateWord2vecCloud = function(options, wordList) {
 
               tempXScale = transform.applyX(xScale(0));
               tempYScale = transform.applyY(yScale(0));
-
-              // update axes
-              d3.select('#pos-y-axis')
-                .attr('x1', transform.applyX(xScale(0)))
-                .attr('y1', transform.applyY(yScale(0)))
-                .attr('x2', transform.applyX(xScale(0)))
-                .attr('y2', transform.applyY(yScale(maxRadius)));
-              d3.select('#pos-x-axis')
-                .attr('x1', transform.applyX(xScale(0)))
-                .attr('y1', transform.applyY(yScale(0)))
-                .attr('x2', transform.applyX(xScale(maxRadius)))
-                .attr('y2', transform.applyY(yScale(0)));
-              d3.select('#neg-y-axis')
-                .attr('x1', transform.applyX(xScale(0)))
-                .attr('y1', transform.applyY(yScale(0)))
-                .attr('x2', transform.applyX(xScale(0)))
-                .attr('y2', transform.applyY(yScale(-maxRadius)));
-              d3.select('#neg-x-axis')
-                .attr('x1', transform.applyX(xScale(0)))
-                .attr('y1', transform.applyY(yScale(0)))
-                .attr('x2', transform.applyX(xScale(-maxRadius)))
-                .attr('y2', transform.applyY(yScale(0)));
-
-              // 45-degree lines
-              d3.select('#quad-3-axis')
-                .attr('x1', transform.applyX(xScale(0)))
-                .attr('y1', transform.applyY(yScale(0)))
-                .attr('x2', transform.applyX(xScale(-maxRadius * Math.cos(Math.PI / 4))))
-                .attr('y2', transform.applyY(yScale(-maxRadius * Math.sin(Math.PI / 4))));
-              d3.select('#quad-1-axis')
-                .attr('x1', transform.applyX(xScale(0)))
-                .attr('y1', transform.applyY(yScale(0)))
-                .attr('x2', transform.applyX(xScale(maxRadius * Math.cos(Math.PI / 4))))
-                .attr('y2', transform.applyY(yScale(maxRadius * Math.sin(Math.PI / 4))));
-              d3.select('#quad-2-axis')
-                .attr('x1', transform.applyX(xScale(0)))
-                .attr('y1', transform.applyY(yScale(0)))
-                .attr('x2', transform.applyX(xScale(maxRadius * Math.cos(Math.PI / 4))))
-                .attr('y2', transform.applyY(yScale(-maxRadius * Math.sin(Math.PI / 4))));
-              d3.select('#quad-4-axis')
-                .attr('x1', transform.applyX(xScale(0)))
-                .attr('y1', transform.applyY(yScale(0)))
-                .attr('x2', transform.applyX(xScale(-maxRadius * Math.cos(Math.PI / 4))))
-                .attr('y2', transform.applyY(yScale(maxRadius * Math.sin(Math.PI / 4))));
           });
   // create cloud
   var svg = d3.select(options.cloudDomId)
     .attr('width', options.width)
     .attr('height', options.height);
 
+  svg.style('cursor', 'default'); // for IE since zoom-in isn't supported
+  svg.style('cursor', 'zoom-in');
   svg.call(zoom)
    .on("dblclick.zoom", function() {
      if (zoomedIn) {
@@ -148,85 +104,11 @@ var generateWord2vecCloud = function(options, wordList) {
     .attr('transform', 'translate(' + xScale(0) + ', ' + yScale(0) + ')')
     .style('opacity', 0);
 
-  // draw concentric circles
-  var circleContainer = svg.append('g').attr('id', 'concentric-circles');
-  for (var i = 0; i < NUM_CONCENTRIC_CIRCLES; i++) {
-    circleContainer.append("circle")
-      .attr('id', 'circle-' + i)
-      .attr("cx", xScale(0))
-      .attr("cy", yScale(0))
-      .attr("r", scaledRadius * radiusRatios[i])
-      .attr('stroke', '#efefef')
-      .style('fill', 'none');
-      //.style("fill", backgroundColors[i]);
-  }
-
   // remove default zoom scroll behavior
   svg.on("wheel.zoom", null);
   svg.on("mousewheel.zoom", null);
   svg.on("MozMousePixelScroll.zoom", null);
 
-
-  // axis polar coord lines
-  const lineColor = '#efefef';
-  svg.append('svg:line')
-    .attr('id', 'pos-y-axis')
-    .attr('x1', xScale(0))
-    .attr('y1', yScale(0))
-    .attr('x2', xScale(0))
-    .attr('y2', yScale(maxRadius))
-    .style('stroke', lineColor);
-  svg.append('svg:line')
-    .attr('id', 'pos-x-axis')
-    .attr('x1', xScale(0))
-    .attr('y1', yScale(0))
-    .attr('x2', xScale(maxRadius))
-    .attr('y2', yScale(0))
-    .style('stroke', lineColor);
-  svg.append('svg:line')
-    .attr('id', 'neg-y-axis')
-    .attr('x1', xScale(0))
-    .attr('y1', yScale(0))
-    .attr('x2', xScale(0))
-    .attr('y2', yScale(-maxRadius))
-    .style('stroke', lineColor);
-  svg.append('svg:line')
-    .attr('id', 'neg-x-axis')
-    .attr('x1', xScale(0))
-    .attr('y1', yScale(0))
-    .attr('x2', xScale(-maxRadius))
-    .attr('y2', yScale(0))
-    .style('stroke', lineColor);
-
-    // 45-degree lines
-    svg.append('svg:line')
-      .attr('id', 'quad-3-axis')
-      .attr('x1', xScale(0))
-      .attr('y1', yScale(0))
-      .attr('x2', xScale(-maxRadius * Math.cos(Math.PI / 4)))
-      .attr('y2', yScale(-maxRadius * Math.sin(Math.PI / 4)))
-      .style('stroke', lineColor);
-    svg.append('svg:line')
-      .attr('id', 'quad-1-axis')
-      .attr('x1', xScale(0))
-      .attr('y1', yScale(0))
-      .attr('x2', xScale(maxRadius * Math.cos(Math.PI / 4)))
-      .attr('y2', yScale(maxRadius * Math.sin(Math.PI / 4)))
-      .style('stroke', lineColor);
-    svg.append('svg:line')
-      .attr('id', 'quad-2-axis')
-      .attr('x1', xScale(0))
-      .attr('y1', yScale(0))
-      .attr('x2', xScale(maxRadius * Math.cos(Math.PI / 4)))
-      .attr('y2', yScale(-maxRadius * Math.sin(Math.PI / 4)))
-      .style('stroke', lineColor);
-    svg.append('svg:line')
-      .attr('id', 'quad-4-axis')
-      .attr('x1', xScale(0))
-      .attr('y1', yScale(0))
-      .attr('x2', xScale(-maxRadius * Math.cos(Math.PI / 4)))
-      .attr('y2', yScale(maxRadius * Math.sin(Math.PI / 4)))
-      .style('stroke', lineColor);
 
   // Add circle at origin
   svg.append('circle')
@@ -234,7 +116,8 @@ var generateWord2vecCloud = function(options, wordList) {
     .attr("cx", xScale(0))
     .attr("cy", yScale(0))
     .attr("r", 5)
-    .style("fill", 'black');
+    .style("fill", 'black')
+    .style("opacity", '0.1');
 
   // Add Text Labels
   const sizeRange = { min: options.minFontSize, max: options.maxFontSize };
